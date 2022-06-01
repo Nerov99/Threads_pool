@@ -21,7 +21,6 @@ public:
 
 private:
     void Run();
-    bool Wait_all();
     size_t m_threadCount;
     std::vector <std::thread> threads;
     std::queue <std::packaged_task <void()>> tasks;
@@ -38,11 +37,7 @@ SimpleThreadPool::SimpleThreadPool(std::size_t threadCount) : m_threadCount{ thr
 }
 
 SimpleThreadPool::~SimpleThreadPool() {
-    if (stop == false) {
-        std::unique_lock<std::mutex> lock(mut);
-        while (!Wait_all());
-        stop = true;
-    }
+    stop = true;
     for (size_t i = 0; i < m_threadCount; ++i) {
         condition.notify_all();
         threads[i].join();
@@ -89,12 +84,6 @@ void SimpleThreadPool::Run() {
             elem();
         }
     }
-}
-
-bool SimpleThreadPool::Wait_all() {
-    bool pool_is_busy;
-    pool_is_busy = tasks.empty();
-    return pool_is_busy;
 }
 
 int CheckFuture() {
